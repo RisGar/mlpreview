@@ -1,6 +1,3 @@
-- Version command
-- Help Command
 - Check that file exists
-- Libarchive caching
 - Archive formats
 - Overrides

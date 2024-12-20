@@ -1,5 +1,7 @@
 open Modules
 
+let version = "0.0.1"
+
 let match_mime mime file_name width height =
   let chan =
     match mime with
@@ -33,10 +35,32 @@ let match_mime mime file_name width height =
   | None -> ()
 ;;
 
-let match_width_height str num =
+let dims_or_default str num =
   match str with
   | Some x -> int_of_string x
   | None -> num
+;;
+
+let match_special_args = function
+  | "-h" | "--help" ->
+    print_endline "Usage: mlpreview [OPTION]... [FILE] [WIDTH] [HEIGHT]";
+    print_endline "Preview files in the terminal.";
+    print_endline "";
+    print_endline "Options:";
+    print_endline "  -h, --help       display this help and exit";
+    print_endline "  -v, --version    output version information and exit";
+    print_endline "";
+    print_endline "When no FILE is provided current directory is read.";
+    exit 0
+  | "-v" | "--version" ->
+    print_endline @@ "mlpreview " ^ version;
+    print_endline
+    @@ "Copyright (C) "
+    ^ (string_of_int @@ (1900 + (Unix.gmtime @@ Unix.time ()).tm_year))
+    ^ " Rishab Garg";
+    print_endline "Licensed under the EUPL-1.2";
+    exit 0
+  | _ -> ()
 ;;
 
 let () =
@@ -44,9 +68,10 @@ let () =
   if List.length args <= 1
   then Helpers.print_in_stream Directory.directory
   else (
+    match_special_args @@ List.nth args 1;
     let file_name = List.nth args 1 in
-    let width = match_width_height (List.nth_opt args 2) 160 - 1 in
-    let height = match_width_height (List.nth_opt args 3) 40 - 1 in
+    let width = dims_or_default (List.nth_opt args 2) 160 - 1 in
+    let height = dims_or_default (List.nth_opt args 3) 40 - 1 in
     let mime = Helpers.get_mime file_name in
     match_mime mime file_name width height)
 ;;
