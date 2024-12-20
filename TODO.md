@@ -1,3 +1,2 @@
 - Check that file exists
-- Archive formats
 - Overrides

@@ -31,7 +31,7 @@ let rec repeat (str : string) (n : int) =
 
 let catch_warnings = function
   | n when n = archive_status_to_int ARCHIVE_OK -> ()
-  | n -> failwith @@ "Returned non-zero exit code: " ^ string_of_int n
+  | n -> failwith @@ "ERROR: Returned non-zero exit code " ^ string_of_int n ^ "."
 ;;
 
 let generate_text file_name =

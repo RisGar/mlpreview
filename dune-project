@@ -2,26 +2,28 @@
 
 (name mlpreview)
 
+(version 0.0.1)
+
 (generate_opam_files true)
-(using ctypes 0.3)
 
 (source
- (github username/reponame))
+ (github RisGar/mlpreview))
 
-(authors "Author Name <author@example.com>")
+(authors "Rishab Garg <contact@rishab-garg.me>")
 
-(maintainers "Maintainer Name <maintainer@example.com>")
+(license EUPL-v1.2)
 
-(license LICENSE)
+; (documentation https://url/to/documentation)
 
-(documentation https://url/to/documentation)
+(using ctypes 0.3)
+
 
 (package
  (name mlpreview)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "Preview files in the terminal")
+ (description "A file previewer for the lf terminal file manager")
  (depends ocaml)
  (tags
-  ("add topics" "to describe" your project)))
+  ("terminal" "cli" "lf")))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

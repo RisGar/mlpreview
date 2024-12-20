@@ -2,4 +2,5 @@
  (name modules)
  (libraries unix ctypes.foreign)
  (flags
-  (:standard -cclib -larchive)))
+  (:standard -cclib -larchive))
+ (c_library_flags (-L/opt/homebrew/opt/libarchive/lib)))

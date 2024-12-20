@@ -21,9 +21,9 @@ OCaml port of [crpreview](https://github.com/RisGar/crpreview).
 
 ## Requirements
 
-- macOS
+- Reasonable version of macOS
 - OCaml 5.2
-- libarchive in `pkg-config` path
+- libarchive via homebrew
 - chafa
 - bat
 - eza

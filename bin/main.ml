@@ -7,24 +7,33 @@ let match_mime mime file_name width height =
     match mime with
     (* directories *)
     | "inode/directory" -> Some Directory.directory
-    (* images *)
-    | str when String.starts_with ~prefix:"image" str ->
-      Some (Image.image file_name ~width ~height)
-    (* [TODO]: archives *)
-    | "application/zip" -> Some (Archive.archive file_name)
+    (* archives *)
+    | "application/x-tar"
+    | "application/zip"
+    | "application/x-zip-compressed"
+    | "application/x-bzip"
+    | "application/x-bzip2"
+    | "application/gzip"
+    | "application/x-gzip"
+    | "application/x-xz"
+    | "application/zstd"
+    | "application/x-lzip" -> Some (Archive.archive file_name)
     (* quicklook: pdfs *)
     | "application/pdf" -> Some (Image.ql file_name ~width ~height)
-    (* quicklook: videos *)
-    | str when String.starts_with ~prefix:"video" str ->
-      Some (Image.ql file_name ~width ~height)
     (* binary *)
     | "application/octet-stream" -> Some (Binary.binary file_name)
     (* empty files *)
     | "inode/x-empty" ->
       print_endline "Empty file";
       None
-    (* generic text *)
-    | "text/plain" -> Some (Text.text file_name)
+    (* text *)
+    | "text/plain" | "application/json" -> Some (Text.text file_name)
+    (* images *)
+    | str when String.starts_with ~prefix:"image" str ->
+      Some (Image.image file_name ~width ~height)
+    (* quicklook: videos *)
+    | str when String.starts_with ~prefix:"video" str ->
+      Some (Image.ql file_name ~width ~height)
     (* everything else *)
     | _ ->
       print_endline mime;
@@ -63,15 +72,25 @@ let match_special_args = function
   | _ -> ()
 ;;
 
+let handle_file args =
+  let file_name = List.nth args 1 in
+  let width = dims_or_default (List.nth_opt args 2) 160 - 1 in
+  let height = dims_or_default (List.nth_opt args 3) 40 - 1 in
+  let mime = Helpers.get_mime file_name in
+  match_mime mime file_name width height
+;;
+
 let () =
   let args = Sys.argv |> Array.to_list in
+  (* print directory when no arguments supplied *)
   if List.length args <= 1
-  then Helpers.print_in_stream Directory.directory
-  else (
-    match_special_args @@ List.nth args 1;
-    let file_name = List.nth args 1 in
-    let width = dims_or_default (List.nth_opt args 2) 160 - 1 in
-    let height = dims_or_default (List.nth_opt args 3) 40 - 1 in
-    let mime = Helpers.get_mime file_name in
-    match_mime mime file_name width height)
+  then (
+    Helpers.print_in_stream Directory.directory;
+    exit 0);
+  (* handle help and version options *)
+  match_special_args @@ List.nth args 1;
+  (* handle files *)
+  if not @@ Sys.file_exists @@ List.nth args 1
+  then failwith "ERROR: File does not exist."
+  else handle_file args
 ;;
