@@ -1,0 +1,5 @@
+(library
+ (name modules)
+ (libraries unix ctypes.foreign)
+ (flags
+  (:standard -cclib -larchive)))
