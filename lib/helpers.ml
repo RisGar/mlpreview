@@ -1,10 +1,15 @@
-let print_in_stream stream = stream |> In_channel.input_all |> print_endline
+let print_in_stream stream =
+  stream |> In_channel.input_all |> print_endline;
+  In_channel.close stream
+;;
 
 let get_mime file_name =
-  Printf.sprintf "file -b --mime-type \"%s\"" file_name
-  |> Unix.open_process_in
-  |> In_channel.input_all
-  |> String.trim
+  let chan =
+    Printf.sprintf "file -b --mime-type \"%s\"" file_name |> Unix.open_process_in
+  in
+  let res = chan |> In_channel.input_all |> String.trim in
+  In_channel.close chan;
+  res
 ;;
 
 let cache_dir =

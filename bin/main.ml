@@ -9,9 +9,7 @@ let match_mime mime file_name width height =
     | str when String.starts_with ~prefix:"image" str ->
       Some (Image.image file_name ~width ~height)
     (* [TODO]: archives *)
-    | "application/zip" ->
-      Archive.archive file_name;
-      None
+    | "application/zip" -> Some (Archive.archive file_name)
     (* quicklook: pdfs *)
     | "application/pdf" -> Some (Image.ql file_name ~width ~height)
     (* quicklook: videos *)
@@ -34,9 +32,6 @@ let match_mime mime file_name width height =
   | Some chan -> Helpers.print_in_stream chan
   | None -> ()
 ;;
-
-(* everything else *)
-(* | _ -> In_channel.open_text "Unknown format" *)
 
 let match_width_height str num =
   match str with

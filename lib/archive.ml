@@ -93,4 +93,13 @@ let generate_text file_name =
   res
 ;;
 
-let archive field_name = generate_text field_name |> print_endline
+let generate_cache cache_file text =
+  Out_channel.with_open_text cache_file (fun oc -> Out_channel.output_string oc text)
+;;
+
+let archive file_name =
+  let cache_file = Helpers.get_cache_file file_name ARCHIVE in
+  let text = generate_text file_name in
+  if not @@ Sys.file_exists cache_file then generate_cache cache_file text;
+  In_channel.open_text cache_file
+;;
