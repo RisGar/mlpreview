@@ -22,6 +22,7 @@ OCaml port of [crpreview](https://github.com/RisGar/crpreview).
 ## Requirements
 
 - Reasonable version of macOS
+- Terminal emulator that supports the [kitty terminal graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
 - OCaml 5.2
 - libarchive via homebrew
 - chafa

@@ -92,5 +92,6 @@ let () =
   (* handle files *)
   if not @@ Sys.file_exists @@ List.nth args 1
   then failwith "ERROR: File does not exist."
-  else handle_file args
+  else handle_file args;
+  exit 0
 ;;

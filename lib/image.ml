@@ -1,6 +1,7 @@
 let image ~width ~height file_name =
   Printf.sprintf
-    "chafa --size %sx%s --animate false -f sixel \"%s\""
+    (* [TODO]: fix latency issues *)
+    "chafa --size %sx%s -f kitty --passthrough tmux \"%s\""
     (string_of_int width)
     (string_of_int height)
     file_name
