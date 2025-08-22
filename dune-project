@@ -1,8 +1,8 @@
-(lang dune 3.17)
+(lang dune 3.19)
 
 (name mlpreview)
 
-(version 0.0.1)
+(version 0.0.2)
 
 (generate_opam_files true)
 
@@ -17,13 +17,12 @@
 
 (using ctypes 0.3)
 
-
 (package
  (name mlpreview)
  (synopsis "Preview files in the terminal")
  (description "A file previewer for the lf terminal file manager")
  (depends ocaml)
  (tags
-  ("terminal" "cli" "lf")))
+  ("terminal" "cli")))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

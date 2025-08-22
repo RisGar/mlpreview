@@ -1,8 +1,10 @@
 # mlpreview
 
-Previews files and directories in the [lf file manager](https://github.com/gokcehan/lf) on macOS.
+- Previews files and directories in the terminal on macOS.
 
-OCaml port of [crpreview](https://github.com/RisGar/crpreview).
+- Can be used as a preview tool for [lf file manager](https://github.com/gokcehan/lf).
+
+- OCaml port of [crpreview](https://github.com/RisGar/crpreview).
 
 ## Features
 
@@ -11,7 +13,7 @@ OCaml port of [crpreview](https://github.com/RisGar/crpreview).
 | File type    | Tool         |
 | ------------ | ------------ |
 | archives[^1] | `libarchive` |
-| images       | `chafa`      |
+| images       | `kitty`      |
 | pdf          | `quick look` |
 | videos       | `quick look` |
 | text         | `bat`        |
@@ -23,15 +25,14 @@ OCaml port of [crpreview](https://github.com/RisGar/crpreview).
 
 - Reasonable version of macOS
 - Terminal emulator that supports the [kitty terminal graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
-- OCaml 5.2
-- libarchive via homebrew
+- libarchive 
 - chafa
 - bat
 - eza
 
-All of the above mentioned preview tools which you want to use.
-
 ## Installation
+
+Requires OCaml 5.3
 
 ```console
 $ dune build --profile release

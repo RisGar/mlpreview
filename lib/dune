@@ -1,6 +1,4 @@
 (library
  (name modules)
- (libraries unix ctypes.foreign)
- (flags
-  (:standard -cclib -larchive))
- (c_library_flags (-L/opt/homebrew/opt/libarchive/lib)))
+ (libraries unix libarchive mupdf)
+ (flags :standard -w -27-32-50))

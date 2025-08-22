@@ -1,0 +1,28 @@
+; (library
+;  (name libmupdf)
+;  (libraries ctypes-foreign)
+;  (flags
+;   (:standard -cclib -lmupdf))
+;  (c_library_flags (-L/opt/homebrew/opt/mupdf/lib)))
+
+(library
+ (name mupdf)
+ (flags
+  (:standard -w -9-27))
+ (ctypes
+  (external_library_name libmupdf)
+  (build_flags_resolver
+   (vendored
+    (c_flags -I/opt/homebrew/opt/mupdf/include)
+    (c_library_flags -L/opt/homebrew/opt/mupdf/lib -lmupdf)))
+  (headers
+   (include "mupdf/fitz.h"))
+  (type_description
+   (instance Types)
+   (functor Type_description))
+  (function_description
+   (concurrency unlocked)
+   (instance Functions)
+   (functor Function_description))
+  (generated_types Types_generated)
+  (generated_entry_point C)))
