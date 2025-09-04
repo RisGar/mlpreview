@@ -11,16 +11,16 @@ let get_mime file_name =
   res
 
 let cache_dir =
-  let cache_dir' =
+  let dirpath =
     match Sys.getenv_opt "XDG_CACHE_HOME" with
     | Some cache_home -> cache_home ^ "/mlpreview/"
     | None -> Sys.getenv "HOME" ^ "/.cache/mlpreview/"
   in
 
   (* create cache dir if it doesn't exist *)
-  if not @@ Sys.file_exists cache_dir' then Sys.mkdir cache_dir' 0o755;
+  if not @@ Sys.file_exists dirpath then Sys.mkdir dirpath 0o755;
 
-  cache_dir'
+  dirpath
 
 let get_cache_file file_name cache_type =
   let hash = Digest.MD5.file file_name |> Digest.to_hex in
