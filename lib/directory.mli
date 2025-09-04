@@ -1,2 +1,2 @@
-(** Render directory using eza  *)
-val directory : in_channel
+val directory : unit -> unit
+(** Render directory using eza *)

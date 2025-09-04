@@ -1,5 +1,5 @@
-open Mupdf.C.Functions
-open Mupdf.C.Types
+open Mupdf_bindings.C.Functions
+open Mupdf_bindings.C.Types
 open Ctypes
 
 let identity_matrix =
@@ -19,7 +19,7 @@ let render_pdf file_name cache_file =
       (from_voidp locks_context null)
       store_default
   in
-  if is_null ctx then failwith "error: cannot create mupdf context" else ();
+  if is_null ctx then failwith "error: cannot create mupdf context";
   register_document_handlers ctx;
 
   let doc = open_document ctx file_name in
@@ -28,14 +28,14 @@ let render_pdf file_name cache_file =
     new_pixmap_from_page_number ctx doc 0 identity_matrix (device_rgb ctx) 0
   in
 
-  save_pixmap_as_png ctx pix cache_file;
+  save_pixmap_as_png ctx pix ("/" ^ cache_file);
 
   drop_pixmap ctx pix;
   drop_document ctx doc;
   drop_context ctx
 
 let pdf ~width ~height file_name =
-  let cache_file = Helpers.get_cache_file file_name THUMB in
+  let cache_file = Helpers.get_cache_file file_name `TEXT in
   (* create thumbnail if it doesn't exist *)
   if not @@ Sys.file_exists cache_file then render_pdf file_name cache_file;
   Image.image cache_file ~width ~height

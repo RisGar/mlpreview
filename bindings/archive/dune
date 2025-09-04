@@ -1,15 +1,18 @@
+; (library
+;  (name libarchive)
+;  (flags
+;   (:standard -cclib -larchive))
+;  (c_library_flags (-L/opt/homebrew/opt/libarchive/lib)))
+
 (library
- (name mupdf_bindings)
+ (name archive_bindings)
  (flags
   (:standard -w -9-27))
  (ctypes
-  (external_library_name libmupdf)
-  (build_flags_resolver
-   (vendored
-    (c_flags -I/opt/homebrew/opt/mupdf/include)
-    (c_library_flags -L/opt/homebrew/opt/mupdf/lib -lmupdf)))
+  (external_library_name libarchive)
+  (build_flags_resolver pkg_config)
   (headers
-   (include "mupdf/fitz.h"))
+   (include "archive.h" "archive_entry.h"))
   (type_description
    (instance Types)
    (functor Type_description))

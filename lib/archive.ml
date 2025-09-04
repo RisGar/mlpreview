@@ -1,14 +1,16 @@
-open Libarchive
+open Archive_bindings.C.Functions
+open Archive_bindings.C.Types
 open Ctypes
+open Helpers
 
 let humanise_size size =
   let units = [| "B"; "KB"; "MB"; "GB"; "TB"; "PB"; "EB"; "ZB"; "YB" |] in
-  let rec aux size unit_index =
+  let rec humanise_size' size unit_index =
     if size < 1024.0 || unit_index = Array.length units - 1 then
       Printf.sprintf "%.1f %s" size units.(unit_index)
-    else aux (size /. 1024.0) (unit_index + 1)
+    else humanise_size' (size /. 1024.0) (unit_index + 1)
   in
-  aux (float_of_int size) 0
+  humanise_size' (float_of_int size) 0
 
 let humanise_time timestamp =
   let tm = Unix.gmtime timestamp in
@@ -19,12 +21,14 @@ let humanise_time timestamp =
 let rec repeat (str : string) (n : int) =
   match n with 0 -> str | _ -> str ^ repeat str (n - 1)
 
-let catch_warnings = function
-  | ARCHIVE_OK -> ()
+(* monadic-style "bind" on error_code *)
+let ( >>= ) m g =
+  match m with
+  | ARCHIVE_OK -> g ()
   | n ->
-      failwith @@ "ERROR: Returned non-zero exit code "
-      ^ (string_of_int @@ int_of_error_code n)
-      ^ "."
+      prerr_endline @@ "error: libarchive returned " ^ string_of_error_code n
+      ^ ".";
+      exit 1
 
 let generate_text file_name =
   (* allocate / get back structs *)
@@ -32,17 +36,20 @@ let generate_text file_name =
   let archive_entry =
     allocate (ptr archive_entry) (from_voidp archive_entry null)
   in
-  (* enable all formats and filters *)
-  archive_read_support_filter_all archive |> catch_warnings;
-  archive_read_support_format_all archive |> catch_warnings;
-  (* open archive *)
+
+  (* enable all formats and filters, then open *)
+  archive_read_support_filter_all archive >>= fun () ->
+  archive_read_support_format_all archive >>= fun () ->
   archive_read_open_filename archive file_name (Unsigned.Size_t.of_int 10240)
-  |> catch_warnings;
+  >>= fun () ->
+  ();
+
   (* list refs to read info into *)
   let strmodes = ref [] in
   let names = ref [] in
   let sizes = ref [] in
   let mtimes = ref [] in
+
   (* read from archive *)
   while archive_read_next_header archive archive_entry = ARCHIVE_OK do
     let entry = !@archive_entry in
@@ -51,6 +58,7 @@ let generate_text file_name =
     sizes := archive_entry_size entry :: !sizes;
     mtimes := PosixTypes.Time.to_int64 (archive_entry_mtime entry) :: !mtimes
   done;
+
   (* convert size to humanly readable *)
   let human_sizes =
     List.mapi
@@ -65,7 +73,8 @@ let generate_text file_name =
   let max_size =
     List.fold_left (fun acc str -> max acc (String.length str)) 0 human_sizes
   in
-  (* [TODO]: colorise *)
+
+  (* TODO: terminal colours *)
   let res =
     List.init (List.length !strmodes) (fun i ->
         let size = List.nth human_sizes i in
@@ -77,15 +86,15 @@ let generate_text file_name =
         ^ size ^ " " ^ mtime ^ " " ^ name)
     |> String.concat "\n"
   in
-  archive_read_free archive |> catch_warnings;
-  res
+
+  archive_read_free archive >>= fun () -> res
 
 let generate_cache cache_file text =
-  Out_channel.with_open_text cache_file (fun oc ->
-      Out_channel.output_string oc text)
+  Out_channel.with_open_text cache_file
+    (Fun.flip Out_channel.output_string text)
 
 let archive file_name =
-  let cache_file = Helpers.get_cache_file file_name ARCHIVE in
+  let cache_file = Helpers.get_cache_file file_name `TEXT in
   if not @@ Sys.file_exists cache_file then
     generate_cache cache_file (generate_text file_name);
-  In_channel.open_text cache_file
+  In_channel.with_open_text cache_file (print_endline << In_channel.input_all)

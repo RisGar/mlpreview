@@ -1,4 +1,4 @@
 (executable
  (public_name mlpreview)
  (name main)
- (libraries modules))
+ (libraries modules cmdliner))

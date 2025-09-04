@@ -1,2 +1,2 @@
+val text : string -> unit
 (** Render text using bat *)
-val text : string -> in_channel

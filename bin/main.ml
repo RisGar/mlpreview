@@ -1,85 +1,76 @@
 open Modules
 
-let version = "0.0.2"
+let handle_filetype ~filename ~width ~height = function
+  (* empty files *)
+  | "inode/x-empty" -> print_endline "Empty file"
+  (* directories *)
+  | "inode/directory" -> Directory.directory ()
+  (* archives *)
+  | "application/x-tar" | "application/zip" | "application/x-zip-compressed"
+  | "application/x-bzip" | "application/x-bzip2" | "application/gzip"
+  | "application/x-gzip" | "application/x-xz" | "application/zstd"
+  | "application/x-lzip" ->
+      Archive.archive filename
+  (* pdfs *)
+  | "application/pdf" -> Pdf.pdf filename ~width ~height
+  (* binary *)
+  | "application/octet-stream" -> Binary.binary filename
+  (* text *)
+  | "text/plain" | "application/json" -> Text.text filename
+  (* images *)
+  | str when String.starts_with ~prefix:"image" str ->
+      Image.image filename ~width ~height
+  (* videos *)
+  | str when String.starts_with ~prefix:"video" str ->
+      Ql.ql filename ~width ~height
+  (* everything else, print mime to find new possible filetypes to handle *)
+  | mime ->
+      print_endline mime;
+      Text.text filename
 
-let match_mime mime file_name width height =
-  let chan =
-    match mime with
-    (* directories *)
-    | "inode/directory" -> Some Directory.directory
-    (* archives *)
-    | "application/x-tar" | "application/zip" | "application/x-zip-compressed"
-    | "application/x-bzip" | "application/x-bzip2" | "application/gzip"
-    | "application/x-gzip" | "application/x-xz" | "application/zstd"
-    | "application/x-lzip" ->
-        Some (Archive.archive file_name)
-    (* pdfs *)
-    | "application/pdf" ->
-        print_endline (Pdf.pdf file_name ~width ~height);
-        None
-    (* binary *)
-    | "application/octet-stream" -> Some (Binary.binary file_name)
-    (* empty files *)
-    | "inode/x-empty" ->
-        print_endline "Empty file";
-        None
-    (* text *)
-    | "text/plain" | "application/json" -> Some (Text.text file_name)
-    (* images *)
-    | str when String.starts_with ~prefix:"image" str ->
-        print_endline (Image.image file_name ~width ~height);
-        None
-    (* quicklook: videos *)
-    | str when String.starts_with ~prefix:"video" str ->
-        print_endline (Image.ql file_name ~width ~height);
-        None
-    (* everything else *)
-    | _ ->
-        print_endline mime;
-        Some (Text.text file_name)
+let mlpreview ~width ~height = function
+  | None -> `Ok (Directory.directory ())
+  | Some filename ->
+      if not @@ Sys.file_exists @@ filename then
+        `Error (false, "file does not exist.")
+      else
+        `Ok
+          (Helpers.get_mime filename |> handle_filetype ~filename ~width ~height)
+
+open Cmdliner
+open Cmdliner.Term.Syntax
+
+let filename =
+  let doc = "File to preview." in
+  Arg.(value & pos 0 (some file) None & info [] ~docv:"FILE" ~doc)
+
+let width =
+  let doc = "Width of preview if applicable." in
+  Arg.(value & pos 1 int 150 & info [] ~docv:"WIDTH" ~doc)
+
+let height =
+  let doc = "Height of preview if applicable." in
+  Arg.(value & pos 2 int 30 & info [] ~docv:"HEIGHT" ~doc)
+
+let mlpreview_cmd =
+  let doc = "Preview files in the terminal." in
+  let man =
+    [
+      `S Manpage.s_bugs;
+      `P "Create an issue at <https://github.com/RisGar/mlpreview/issues/new>.";
+      `S "COPYRIGHT";
+      `P
+        ("Copyright (C) "
+        ^ (string_of_int @@ (1900 + (Unix.gmtime @@ Unix.time ()).tm_year))
+        ^ " Rishab Garg");
+      `P "Licensed under the EUPL-1.2";
+    ]
   in
-  match chan with Some chan -> Helpers.print_in_stream chan | None -> ()
+  Cmd.v (Cmd.info "mlpreview" ~version:"%%VERSION%%" ~doc ~man)
+  @@ Term.ret
+  @@
+  let+ filename = filename and+ width = width and+ height = height in
+  mlpreview ~width ~height filename
 
-let dims_or_default str num =
-  match str with Some x -> int_of_string x | None -> num
-
-let match_special_args = function
-  | "-h" | "--help" ->
-      print_endline "Usage: mlpreview [OPTION]... [FILE] [WIDTH] [HEIGHT]";
-      print_endline "Preview files in the terminal.";
-      print_endline "";
-      print_endline "Options:";
-      print_endline "  -h, --help       display this help and exit";
-      print_endline "  -v, --version    output version information and exit";
-      print_endline "";
-      print_endline "When no FILE is provided current directory is read.";
-      exit 0
-  | "-v" | "--version" ->
-      print_endline @@ "mlpreview " ^ version;
-      print_endline @@ "Copyright (C) "
-      ^ (string_of_int @@ (1900 + (Unix.gmtime @@ Unix.time ()).tm_year))
-      ^ " Rishab Garg";
-      print_endline "Licensed under the EUPL-1.2";
-      exit 0
-  | _ -> ()
-
-let handle_file args =
-  let file_name = List.nth args 1 in
-  let width = dims_or_default (List.nth_opt args 2) 160 - 1 in
-  let height = dims_or_default (List.nth_opt args 3) 40 - 1 in
-  let mime = Helpers.get_mime file_name in
-  match_mime mime file_name width height
-
-let () =
-  let args = Sys.argv |> Array.to_list in
-  (* print directory when no arguments supplied *)
-  if List.length args <= 1 then (
-    Helpers.print_in_stream Directory.directory;
-    exit 0);
-  (* handle help and version options *)
-  match_special_args @@ List.nth args 1;
-  (* handle files *)
-  if not @@ Sys.file_exists @@ List.nth args 1 then
-    failwith "ERROR: File does not exist."
-  else handle_file args;
-  exit 0
+let main () = Cmd.eval mlpreview_cmd
+let () = if !Sys.interactive then () else exit (main ())

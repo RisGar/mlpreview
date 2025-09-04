@@ -1,1 +1,1 @@
-val pdf : width:int -> height:int -> string -> string
+val pdf : width:int -> height:int -> string -> unit

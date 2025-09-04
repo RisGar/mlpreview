@@ -54,7 +54,4 @@ module Types (F : Ctypes.TYPE) = struct
 
   (* fz_store_* *)
   let store_default = constant "FZ_STORE_DEFAULT" uint
-
-  (* (* fz_version *) *)
-  (* let version = constant "FZ_VERSION" (ptr char) *)
 end
