@@ -22,9 +22,9 @@ let rec repeat (str : string) (n : int) =
   match n with 0 -> str | _ -> str ^ repeat str (n - 1)
 
 (* monadic-style "bind" on error_code *)
-let ( >>= ) m g =
-  match m with
-  | ARCHIVE_OK -> g ()
+let ( >>= ) a b =
+  match a with
+  | ARCHIVE_OK -> b ()
   | n ->
       prerr_endline @@ "error: libarchive returned " ^ string_of_error_code n
       ^ ".";
