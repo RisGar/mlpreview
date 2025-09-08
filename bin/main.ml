@@ -47,19 +47,19 @@ let filename =
   Arg.(value & pos 0 (some file) None & info [] ~docv:"FILE" ~doc)
 
 let width =
-  let doc = "Width of preview if applicable." in
+  let doc = "Width of preview for images." in
   Arg.(value & pos 1 int 150 & info [] ~docv:"WIDTH" ~doc)
 
 let height =
-  let doc = "Height of preview if applicable." in
+  let doc = "Height of preview for images." in
   Arg.(value & pos 2 int 30 & info [] ~docv:"HEIGHT" ~doc)
 
 let horizontal =
-  let doc = "Horizontal position of preview if applicable." in
+  let doc = "Horizontal position (currently unused)." in
   Arg.(value & pos 3 int 0 & info [] ~docv:"HPOS" ~doc)
 
 let vertical =
-  let doc = "Vertical position of preview if applicable." in
+  let doc = "Vertical position (currently unused)." in
   Arg.(value & pos 4 int 0 & info [] ~docv:"VPOS" ~doc)
 
 let mlpreview_cmd =
