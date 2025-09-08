@@ -22,15 +22,17 @@ let handle_filetype ~filename ~width ~height = function
       Image.image filename ~width ~height
   (* videos *)
   | str when String.starts_with ~prefix:"video" str ->
-      Ql.ql filename ~width ~height
+      FFmpeg.thumbnail filename ~width ~height
   (* everything else, print mime to find new possible filetypes to handle *)
   | mime ->
       print_endline mime;
       Text.text filename
 
-let mlpreview ~width ~height = function
+let mlpreview ~width ~height ~horizontal ~vertical = function
   | None -> `Ok (Directory.directory ())
   | Some filename ->
+      ignore horizontal;
+      ignore vertical;
       if not @@ Sys.file_exists @@ filename then
         `Error (false, "file does not exist.")
       else
@@ -52,10 +54,22 @@ let height =
   let doc = "Height of preview if applicable." in
   Arg.(value & pos 2 int 30 & info [] ~docv:"HEIGHT" ~doc)
 
+let horizontal =
+  let doc = "Horizontal position of preview if applicable." in
+  Arg.(value & pos 3 int 0 & info [] ~docv:"HPOS" ~doc)
+
+let vertical =
+  let doc = "Vertical position of preview if applicable." in
+  Arg.(value & pos 4 int 0 & info [] ~docv:"VPOS" ~doc)
+
 let mlpreview_cmd =
   let doc = "Preview files in the terminal." in
   let man =
     [
+      `S Manpage.s_description;
+      `P
+        "Allows previewing of different filetypes in the terminal, for example \
+         with lf.";
       `S Manpage.s_bugs;
       `P "Create an issue at <https://github.com/RisGar/mlpreview/issues/new>.";
       `S "COPYRIGHT";
@@ -69,8 +83,12 @@ let mlpreview_cmd =
   Cmd.v (Cmd.info "mlpreview" ~version:"%%VERSION%%" ~doc ~man)
   @@ Term.ret
   @@
-  let+ filename = filename and+ width = width and+ height = height in
-  mlpreview ~width ~height filename
+  let+ filename = filename
+  and+ width = width
+  and+ height = height
+  and+ horizontal = horizontal
+  and+ vertical = vertical in
+  mlpreview ~width ~height ~horizontal ~vertical filename
 
 let main () = Cmd.eval mlpreview_cmd
 let () = if !Sys.interactive then () else exit (main ())
