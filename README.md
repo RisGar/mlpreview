@@ -23,10 +23,10 @@
 
 ## Requirements
 
-- Reasonable version of macOS
 - Terminal emulator that supports the [kitty terminal graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
-- libarchive 
-- chafa
+- libarchive
+- mupdf
+- chafa (for now)
 - bat
 - eza
 
@@ -35,7 +35,7 @@
 Requires OCaml 5.3
 
 ```console
-$ dune build --profile release
+dune build --profile release
 ```
 
 ## Usage
