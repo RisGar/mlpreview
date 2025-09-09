@@ -23,6 +23,6 @@ let cache_dir =
   dirpath
 
 let get_cache_file file_name cache_type =
-  let hash = Sha256.file file_name |> Sha256.to_hex in
+  let hash = Digest.MD5.file file_name |> Digest.to_hex in
 
   cache_dir ^ hash ^ match cache_type with `TEXT -> ".txt" | `THUMB -> ".png"
