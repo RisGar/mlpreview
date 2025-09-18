@@ -10,14 +10,14 @@
 
 `crpreview` can preview the following formats:
 
-| File type    | Tool         |
-| ------------ | ------------ |
-| archives[^1] | `libarchive` |
-| images       | `kitty`      |
-| pdf          | `quick look` |
-| videos       | `quick look` |
-| text         | `bat`        |
-| directories  | `eza`        |
+| File type    | Tool                                                                                                  |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| archives[^1] | libarchive                                                                                            |
+| images       | [Kitty unicode placeholders](https://sw.kovidgoyal.net/kitty/graphics-protocol/#unicode-placeholders) |
+| pdf          | libmupdf                                                                                              |
+| videos       | ffmpeg thumbnails                                                                                     |
+| text         | bat                                                                                                   |
+| directories  | eza                                                                                                   |
 
 [^1]: Supported formats: `tar`, `7-zip`, `zip`, `bzip`, `bzip2`, `gunzip`, `xz`, `zstd`, `lzip`
 

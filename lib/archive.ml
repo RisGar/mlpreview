@@ -13,7 +13,7 @@ let humanise_size size =
   humanise_size' (float_of_int size) 0
 
 let humanise_time timestamp =
-  let tm = Unix.gmtime timestamp in
+  let tm = Unix.localtime timestamp in
   Printf.sprintf "%02d/%02d/%04d %02d:%02d" tm.tm_mday (tm.tm_mon + 1)
     (tm.tm_year + 1900) tm.tm_hour tm.tm_min
 
@@ -56,7 +56,7 @@ let generate_text file_name =
     strmodes := archive_entry_strmode entry :: !strmodes;
     names := archive_entry_pathname_utf8 entry :: !names;
     sizes := archive_entry_size entry :: !sizes;
-    mtimes := PosixTypes.Time.to_int64 (archive_entry_mtime entry) :: !mtimes
+    mtimes := archive_entry_mtime entry :: !mtimes
   done;
 
   (* convert size to humanly readable *)
@@ -67,22 +67,37 @@ let generate_text file_name =
         else humanise_size @@ Int64.to_int size)
       !sizes
   in
-  let human_dates =
-    List.map (fun t -> humanise_time @@ Int64.to_float t) !mtimes
-  in
+
   let max_size =
     List.fold_left (fun acc str -> max acc (String.length str)) 0 human_sizes
+  in
+
+  let colorised_sizes =
+    List.map
+      (function
+        | "-" -> Spectrum.Simple.sprintf "@{<grey-50>%s@}" "-"
+        | str -> Spectrum.Simple.sprintf "@{<green>%s@}" str)
+      human_sizes
+  in
+
+  let colorised_dates =
+    List.map
+      (fun t ->
+        Spectrum.Simple.sprintf "@{<yellow>%s@}"
+        @@ humanise_time @@ Int64.to_float @@ PosixTypes.Time.to_int64 t)
+      !mtimes
   in
 
   (* TODO: terminal colours *)
   let res =
     List.init (List.length !strmodes) (fun i ->
-        let size = List.nth human_sizes i in
+        let raw_size = List.nth human_sizes i in
+        let size = List.nth colorised_sizes i in
         let strmode = List.nth !strmodes i in
-        let mtime = List.nth human_dates i in
+        let mtime = List.nth colorised_dates i in
         let name = List.nth !names i in
         strmode ^ " "
-        ^ repeat " " (max_size - String.length size)
+        ^ repeat " " (max_size - String.length raw_size)
         ^ size ^ " " ^ mtime ^ " " ^ name)
     |> String.concat "\n"
   in
@@ -95,6 +110,6 @@ let generate_cache cache_file text =
 
 let archive file_name =
   let cache_file = Helpers.get_cache_file file_name `TEXT in
-  if not @@ Sys.file_exists cache_file then
-    generate_cache cache_file (generate_text file_name);
+  (* if not @@ Sys.file_exists cache_file then *)
+  generate_cache cache_file (generate_text file_name);
   In_channel.with_open_text cache_file (print_endline << In_channel.input_all)

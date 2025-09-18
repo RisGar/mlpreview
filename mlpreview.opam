@@ -11,6 +11,9 @@ bug-reports: "https://github.com/RisGar/mlpreview/issues"
 depends: [
   "dune" {>= "3.19"}
   "ocaml"
+  "cmdliner"
+  "spectrum"
+  "ctypes"
   "odoc" {with-doc}
 ]
 build: [

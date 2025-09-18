@@ -21,7 +21,7 @@
  (name mlpreview)
  (synopsis "Preview files in the terminal")
  (description "A file previewer for the lf terminal file manager")
- (depends ocaml)
+ (depends ocaml cmdliner spectrum ctypes)
  (tags
   ("terminal" "cli")))
 

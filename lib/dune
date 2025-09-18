@@ -1,4 +1,4 @@
 (library
  (name modules)
- (libraries unix kittyimg stb_image archive_bindings mupdf_bindings sha)
+ (libraries unix archive_bindings mupdf_bindings spectrum)
  (flags :standard -w -27-32-50))
