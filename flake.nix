@@ -1,78 +1,70 @@
 {
-  description = "OCaml Template";
+  description = "mlpreview";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    systems.url = "github:nix-systems/default";
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-      inputs.systems.follows = "systems";
-    };
   };
 
   outputs =
+    { nixpkgs, ... }:
+    let
+      supportedSystems = nixpkgs.lib.systems.flakeExposed;
+    in
     {
-      self,
-      nixpkgs,
-      flake-utils,
-      ...
-    }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
+      packages = nixpkgs.lib.genAttrs supportedSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
 
-        ocamlPackages = pkgs.ocamlPackages;
-
-        spectrum = ocamlPackages.buildDunePackage rec {
-          pname = "spectrum";
-          version = "";
-          src = builtins.fetchurl {
-            url = "https://github.com/RisGar/ocaml-spectrum/archive/6f69da7057a8a0ac1d31887363cfbd05abd4de42.tar.gz";
-            sha256 = "sha256:084nvj20b2v1b6zjw629x5986k0jhg9gcnym312mdfj984q3bqd4";
+          ocamlPackages = pkgs.ocamlPackages // {
+            spectrum = ocamlPackages.buildDunePackage {
+              pname = "spectrum";
+              version = "0.6.1";
+              src = pkgs.fetchFromGitHub {
+                owner = "RisGar";
+                repo = "ocaml-spectrum";
+                rev = "437e3797de66fa919703409665c5a1ef2df09328";
+                hash = "sha256-aEATXTSbRA5Y0fO71Ca4+OGr7NTBJjQl+ecr3LacqlE=";
+              };
+              propagatedBuildInputs = [
+                ocamlPackages.color
+                ocamlPackages.ppx_deriving
+                ocamlPackages.opam-state
+                ocamlPackages.pcre2
+              ];
+            };
           };
-          propagatedBuildInputs = with pkgs; [
-            # Add the packages needed
-            ocamlPackages.color
-            ocamlPackages.ppx_deriving
-            ocamlPackages.opam-state
-            ocamlPackages.pcre2
+
+          buildInputs = [
+            # OCaml dependencies
+            ocamlPackages.cmdliner
+            ocamlPackages.ctypes
+            ocamlPackages.spectrum
+
+            # Linking dependencies (make available for dynamic linking)
+            pkgs.libarchive
+            pkgs.mupdf
+
+            # CLI dependencies
+            pkgs.eza
+            pkgs.ffmpeg
+            pkgs.bat
           ];
-        };
 
-        buildInputs = [
-          # Add library dependencies here
-          ocamlPackages.cmdliner
-          ocamlPackages.ctypes
-          spectrum
+          nativeBuildInputs = [
+            ocamlPackages.ocaml
+            # the dune build system
+            ocamlPackages.dune_3
 
-          pkgs.pkgconf
-          pkgs.pkg-config
-          pkgs.libarchive
-          pkgs.mupdf
-        ];
-
-        nativeBuildInputs = with pkgs; [
-          ocamlPackages.ocaml
-          # the dune build system
-          ocamlPackages.dune_3
-
-          # If you're on NixOS, you'll probably want this (See: https://nixos.wiki/wiki/OCaml#Findlib.2C_ocamlfind)
-          # ocamlPackages.findlib
-
-          # Additionally, add any development packages you want
-          # A fancy REPL...
-          ocamlPackages.utop
-          # Editor integration...
-          ocamlPackages.merlin
-          ocamlPackages.lsp
-          # Formatting...
-          ocamlPackages.ocamlformat
-          ocamlPackages.ocp-indent
-        ];
-      in
-      {
-        packages = {
+            # Additionally, add any development packages you want
+            ocamlPackages.utop
+            ocamlPackages.merlin
+            ocamlPackages.lsp
+            ocamlPackages.ocamlformat
+            ocamlPackages.ocp-indent
+          ];
+        in
+        {
           default = ocamlPackages.buildDunePackage {
             pname = "mlpreview";
             version = "0.0.3";
@@ -83,9 +75,60 @@
 
             inherit nativeBuildInputs buildInputs;
           };
-        };
+        }
+      );
 
-        devShells.default = pkgs.mkShell { inherit nativeBuildInputs buildInputs; };
-      }
-    );
+      devShells = nixpkgs.lib.genAttrs supportedSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+
+          ocamlPackages = pkgs.ocamlPackages // {
+            spectrum = ocamlPackages.buildDunePackage {
+              pname = "spectrum";
+              version = "0.6.1";
+              src = pkgs.fetchFromGitHub {
+                owner = "RisGar";
+                repo = "ocaml-spectrum";
+                rev = "437e3797de66fa919703409665c5a1ef2df09328";
+                hash = "sha256-aEATXTSbRA5Y0fO71Ca4+OGr7NTBJjQl+ecr3LacqlE=";
+              };
+              propagatedBuildInputs = [
+                ocamlPackages.color
+                ocamlPackages.ppx_deriving
+                ocamlPackages.opam-state
+                ocamlPackages.pcre2
+              ];
+            };
+          };
+
+          buildInputs = [
+            ocamlPackages.cmdliner
+            ocamlPackages.ctypes
+            ocamlPackages.spectrum
+
+            # Ensure these are available in the shell for linking/testing
+            pkgs.libarchive
+            pkgs.mupdf
+
+            pkgs.eza
+            pkgs.ffmpeg
+            pkgs.bat
+          ];
+
+          nativeBuildInputs = [
+            ocamlPackages.ocaml
+            ocamlPackages.dune_3
+            ocamlPackages.utop
+            ocamlPackages.merlin
+            ocamlPackages.lsp
+            ocamlPackages.ocamlformat
+            ocamlPackages.ocp-indent
+          ];
+        in
+        {
+          default = pkgs.mkShell { inherit nativeBuildInputs buildInputs; };
+        }
+      );
+    };
 }
