@@ -14,23 +14,21 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          ocamlPackagesBase = pkgs.ocamlPackages;
-
-          ocamlPackages = ocamlPackagesBase // {
-            spectrum = ocamlPackagesBase.buildDunePackage {
+          ocamlPackages = pkgs.ocamlPackages // {
+            spectrum = ocamlPackages.buildDunePackage {
               pname = "spectrum";
               version = "0.6.1";
               src = pkgs.fetchFromGitHub {
                 owner = "RisGar";
                 repo = "ocaml-spectrum";
-                rev = "437e3797de66fa919703409665c5a1ef2df09328";
+                rev = "v0.6.1";
                 hash = "sha256-aEATXTSbRA5Y0fO71Ca4+OGr7NTBJjQl+ecr3LacqlE=";
               };
               propagatedBuildInputs = [
-                ocamlPackagesBase.color
-                ocamlPackagesBase.ppx_deriving
-                ocamlPackagesBase.opam-state
-                ocamlPackagesBase.pcre2
+                ocamlPackages.color
+                ocamlPackages.ppx_deriving
+                ocamlPackages.opam-state
+                ocamlPackages.pcre2
               ];
             };
           };
