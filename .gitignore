@@ -30,3 +30,11 @@ _opam/
 
 # MacOS
 **/.DS_Store
+
+# Nix
+.envrc
+.direnv
+result
+
+# Testing
+test.tar.xz

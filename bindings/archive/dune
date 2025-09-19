@@ -9,7 +9,7 @@
  (flags
   (:standard -w -9-27))
  (ctypes
-  (external_library_name archive)
+  (external_library_name libarchive)
   (build_flags_resolver pkg_config)
   (headers
    (include "archive.h" "archive_entry.h"))

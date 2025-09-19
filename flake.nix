@@ -9,15 +9,15 @@
     { nixpkgs, ... }:
     let
       supportedSystems = nixpkgs.lib.systems.flakeExposed;
-    in
-    {
-      packages = nixpkgs.lib.genAttrs supportedSystems (
+
+      mkOcamlEnv =
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          ocamlPackagesBase = pkgs.ocamlPackages;
 
-          ocamlPackages = pkgs.ocamlPackages // {
-            spectrum = ocamlPackages.buildDunePackage {
+          ocamlPackages = ocamlPackagesBase // {
+            spectrum = ocamlPackagesBase.buildDunePackage {
               pname = "spectrum";
               version = "0.6.1";
               src = pkgs.fetchFromGitHub {
@@ -27,10 +27,10 @@
                 hash = "sha256-aEATXTSbRA5Y0fO71Ca4+OGr7NTBJjQl+ecr3LacqlE=";
               };
               propagatedBuildInputs = [
-                ocamlPackages.color
-                ocamlPackages.ppx_deriving
-                ocamlPackages.opam-state
-                ocamlPackages.pcre2
+                ocamlPackagesBase.color
+                ocamlPackagesBase.ppx_deriving
+                ocamlPackagesBase.opam-state
+                ocamlPackagesBase.pcre2
               ];
             };
           };
@@ -53,19 +53,28 @@
 
           nativeBuildInputs = [
             ocamlPackages.ocaml
-            # the dune build system
             ocamlPackages.dune_3
 
-            # Additionally, add any development packages you want
-            ocamlPackages.utop
-            ocamlPackages.merlin
-            ocamlPackages.lsp
-            ocamlPackages.ocamlformat
-            ocamlPackages.ocp-indent
+            # For finding c libraries
+            pkgs.pkg-config
           ];
+
         in
         {
-          default = ocamlPackages.buildDunePackage {
+          buildInputs = buildInputs;
+          nativeBuildInputs = nativeBuildInputs;
+          ocamlPackages = ocamlPackages;
+        };
+
+    in
+    {
+      packages = nixpkgs.lib.genAttrs supportedSystems (
+        system:
+        let
+          env = mkOcamlEnv system;
+        in
+        {
+          default = env.ocamlPackages.buildDunePackage {
             pname = "mlpreview";
             version = "0.0.3";
             duneVersion = "3";
@@ -73,7 +82,7 @@
 
             strictDeps = true;
 
-            inherit nativeBuildInputs buildInputs;
+            inherit (env) nativeBuildInputs buildInputs;
           };
         }
       );
@@ -81,53 +90,19 @@
       devShells = nixpkgs.lib.genAttrs supportedSystems (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
-
-          ocamlPackages = pkgs.ocamlPackages // {
-            spectrum = ocamlPackages.buildDunePackage {
-              pname = "spectrum";
-              version = "0.6.1";
-              src = pkgs.fetchFromGitHub {
-                owner = "RisGar";
-                repo = "ocaml-spectrum";
-                rev = "437e3797de66fa919703409665c5a1ef2df09328";
-                hash = "sha256-aEATXTSbRA5Y0fO71Ca4+OGr7NTBJjQl+ecr3LacqlE=";
-              };
-              propagatedBuildInputs = [
-                ocamlPackages.color
-                ocamlPackages.ppx_deriving
-                ocamlPackages.opam-state
-                ocamlPackages.pcre2
-              ];
-            };
-          };
-
-          buildInputs = [
-            ocamlPackages.cmdliner
-            ocamlPackages.ctypes
-            ocamlPackages.spectrum
-
-            # Ensure these are available in the shell for linking/testing
-            pkgs.libarchive
-            pkgs.mupdf
-
-            pkgs.eza
-            pkgs.ffmpeg
-            pkgs.bat
-          ];
-
-          nativeBuildInputs = [
-            ocamlPackages.ocaml
-            ocamlPackages.dune_3
-            ocamlPackages.utop
-            ocamlPackages.merlin
-            ocamlPackages.lsp
-            ocamlPackages.ocamlformat
-            ocamlPackages.ocp-indent
-          ];
+          env = mkOcamlEnv system;
         in
         {
-          default = pkgs.mkShell { inherit nativeBuildInputs buildInputs; };
+          default = nixpkgs.legacyPackages.${system}.mkShell {
+            inherit (env) buildInputs;
+
+            # Add devShell tools
+            nativeBuildInputs = env.nativeBuildInputs ++ [
+              env.ocamlPackages.utop
+              env.ocamlPackages.ocaml-lsp
+              env.ocamlPackages.ocamlformat
+            ];
+          };
         }
       );
     };
