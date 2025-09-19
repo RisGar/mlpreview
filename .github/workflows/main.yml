@@ -1,0 +1,16 @@
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  build-pkg:
+    name: Build Nix package
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5.0.0
+      - uses: DeterminateSystems/determinate-nix-action@main # or v3.11.2 to pin to a release
+      - run: nix build .
