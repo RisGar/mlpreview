@@ -63,7 +63,7 @@ let generate_text file_name =
   let human_sizes =
     List.mapi
       (fun i size ->
-        if List.nth !strmodes i |> String.starts_with ~prefix:"d" then "-"
+        if String.starts_with ~prefix:"d" @@ List.nth !strmodes i then "-"
         else humanise_size @@ Int64.to_int size)
       !sizes
   in
@@ -90,16 +90,16 @@ let generate_text file_name =
 
   (* TODO: terminal colours *)
   let res =
-    List.init (List.length !strmodes) (fun i ->
-        let raw_size = List.nth human_sizes i in
-        let size = List.nth colorised_sizes i in
-        let strmode = List.nth !strmodes i in
-        let mtime = List.nth colorised_dates i in
-        let name = List.nth !names i in
-        strmode ^ " "
-        ^ repeat " " (max_size - String.length raw_size)
-        ^ size ^ " " ^ mtime ^ " " ^ name)
-    |> String.concat "\n"
+    String.concat "\n"
+    @@ List.init (List.length !strmodes) (fun i ->
+           let raw_size = List.nth human_sizes i in
+           let size = List.nth colorised_sizes i in
+           let strmode = List.nth !strmodes i in
+           let mtime = List.nth colorised_dates i in
+           let name = List.nth !names i in
+           strmode ^ " "
+           ^ repeat " " (max_size - String.length raw_size)
+           ^ size ^ " " ^ mtime ^ " " ^ name)
   in
 
   archive_read_free archive >>= fun () -> res
