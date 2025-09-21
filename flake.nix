@@ -6,7 +6,7 @@
   };
 
   outputs =
-    { nixpkgs, ... }:
+    { nixpkgs, self, ... }:
     let
       supportedSystems = nixpkgs.lib.systems.flakeExposed;
 
@@ -75,6 +75,8 @@
           buildInputs = buildInputs ++ buildInputsCli;
         };
 
+    in
+    {
       packages = nixpkgs.lib.genAttrs supportedSystems (
         system:
         let
@@ -118,11 +120,8 @@
         }
       );
 
-    in
-    {
-      inherit packages devShells;
-
-      overlays.default = f: p: { mlpreview = packages.${p.system}.default; };
+      overlays.default = f: p: { mlpreview = self.packages.${p.system}.default; };
+      overlay = self.overlays.default;
 
     };
 }
