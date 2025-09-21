@@ -14,6 +14,7 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+
           ocamlPackages = pkgs.ocamlPackages // {
             spectrum = ocamlPackages.buildDunePackage {
               pname = "spectrum";
@@ -33,39 +34,47 @@
             };
           };
 
-          buildInputs = [
-            # OCaml dependencies
-            ocamlPackages.cmdliner
-            ocamlPackages.ctypes
-            ocamlPackages.spectrum
-
-            # Linking dependencies (make available for dynamic linking)
-            pkgs.libarchive
-            pkgs.mupdf
-
+          buildInputsCli = [
             # CLI dependencies
             pkgs.eza
             pkgs.ffmpeg
             pkgs.bat
           ];
 
+          buildInputs = [
+            # OCaml dependencies
+            ocamlPackages.cmdliner
+            ocamlPackages.ctypes
+            ocamlPackages.spectrum
+
+            # Linked libraries
+            pkgs.libarchive
+            pkgs.mupdf
+          ];
+
           nativeBuildInputs = [
             ocamlPackages.ocaml
             ocamlPackages.dune_3
 
-            # For finding c libraries
+            # For finding C libraries
             pkgs.pkg-config
+
+            # For wrapping executables with PATH
+            pkgs.makeWrapper
           ];
 
         in
         {
-          buildInputs = buildInputs;
-          nativeBuildInputs = nativeBuildInputs;
-          ocamlPackages = ocamlPackages;
+          inherit
+            buildInputsCli
+            nativeBuildInputs
+            ocamlPackages
+            pkgs
+            ;
+
+          buildInputs = buildInputs ++ buildInputsCli;
         };
 
-    in
-    {
       packages = nixpkgs.lib.genAttrs supportedSystems (
         system:
         let
@@ -81,6 +90,11 @@
             strictDeps = true;
 
             inherit (env) nativeBuildInputs buildInputs;
+
+            postInstall = ''
+              # Wrap installed executables to include required CLI tools on PATH
+              wrapProgram "$out/bin/mlpreview" --prefix PATH : "${env.pkgs.lib.makeBinPath env.buildInputsCli}"
+            '';
           };
         }
       );
@@ -103,5 +117,12 @@
           };
         }
       );
+
+    in
+    {
+      inherit packages devShells;
+
+      overlays.default = f: p: { mlpreview = packages.${p.system}.default; };
+
     };
 }
