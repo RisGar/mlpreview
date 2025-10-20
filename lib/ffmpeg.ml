@@ -1,7 +1,10 @@
 let generate_thumb file_name cache_file =
-  ignore @@ Unix.open_process_in
-  @@ Printf.sprintf "ffmpeg -ss 00:00:01 -i \"%s\" -frames:v 1 \"%s\"" file_name
-       cache_file
+  let channel =
+    Unix.open_process_in
+    @@ Printf.sprintf "ffmpeg -ss 00:00:01 -i \"%s\" -frames:v 1 \"%s\""
+         file_name cache_file
+  in
+  In_channel.close channel
 
 let thumbnail ~width ~height file =
   let cache_file = Helpers.get_cache_file file `THUMB in
