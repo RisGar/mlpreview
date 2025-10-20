@@ -11,9 +11,8 @@
       supportedSystems = nixpkgs.lib.systems.flakeExposed;
 
       mkOcamlEnv =
-        system:
+        pkgs:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
 
           ocamlPackages = pkgs.ocamlPackages // {
             spectrum = ocamlPackages.buildDunePackage {
@@ -75,36 +74,41 @@
           buildInputs = buildInputs ++ buildInputsCli;
         };
 
+      mkOcamlBuild =
+        pkgs:
+        let
+          env = mkOcamlEnv pkgs;
+        in
+        env.ocamlPackages.buildDunePackage {
+          pname = "mlpreview";
+          version = "0.0.3";
+          duneVersion = "3";
+          meta = {
+            mainProgram = "mlpreview";
+            license = pkgs.lib.licenses.eupl12;
+          };
+          src = ./.;
+
+          strictDeps = true;
+
+          inherit (env) nativeBuildInputs buildInputs;
+
+          postInstall = ''
+            # Wrap installed executables to include required CLI tools on PATH
+            wrapProgram "$out/bin/mlpreview" --prefix PATH : "${env.pkgs.lib.makeBinPath env.buildInputsCli}"
+          '';
+        };
+
     in
     {
-      packages = nixpkgs.lib.genAttrs supportedSystems (
-        system:
-        let
-          env = mkOcamlEnv system;
-        in
-        {
-          default = env.ocamlPackages.buildDunePackage {
-            pname = "mlpreview";
-            version = "0.0.3";
-            duneVersion = "3";
-            src = ./.;
-
-            strictDeps = true;
-
-            inherit (env) nativeBuildInputs buildInputs;
-
-            postInstall = ''
-              # Wrap installed executables to include required CLI tools on PATH
-              wrapProgram "$out/bin/mlpreview" --prefix PATH : "${env.pkgs.lib.makeBinPath env.buildInputsCli}"
-            '';
-          };
-        }
-      );
+      packages = nixpkgs.lib.genAttrs supportedSystems (system: {
+        default = mkOcamlBuild nixpkgs.legacyPackages.${system};
+      });
 
       devShells = nixpkgs.lib.genAttrs supportedSystems (
         system:
         let
-          env = mkOcamlEnv system;
+          env = mkOcamlEnv nixpkgs.legacyPackages.${system};
         in
         {
           default = nixpkgs.legacyPackages.${system}.mkShell {
@@ -120,7 +124,7 @@
         }
       );
 
-      overlays.default = f: p: { mlpreview = self.packages.${p.system}.default; };
+      overlays.default = final: prev: { mlpreview = mkOcamlBuild prev; };
       overlay = self.overlays.default;
 
     };
