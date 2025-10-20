@@ -24,18 +24,56 @@
 ## Requirements
 
 - Terminal emulator that supports the [kitty terminal graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
-- libarchive
-- mupdf
-- chafa (for now)
-- bat
-- eza
 
 ## Installation
 
-Requires OCaml 5.3
+### Nix flake
+
+Try it out:
 
 ```console
-dune build --profile release
+nix shell github:RisGar/mlpreview
+```
+
+Install it as a profile:
+
+```console
+nix profile install github:RisGar/mlpreview
+```
+
+Include it in your config:
+
+```nix
+inputs = {
+  ...
+  mlpreview.url = "github:RisGar/mlpreview";
+  mlpreview.inputs.nixpkgs.follows = "nixpkgs";
+};
+
+...
+
+environment.systemPackages = [
+  mlpreview.packages.${pkgs.system}.default
+];
+```
+
+### Manual
+
+Ensure the following requirements are installed:
+
+- OCaml 5.3
+- libarchive
+- mupdf
+- bat
+- eza
+- ffmpeg
+
+```console
+git clone https://github.com/RisGar/mlpreview
+cd mlpreview
+
+opam install . --deps-only
+dune build
 ```
 
 ## Usage
