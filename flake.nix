@@ -6,7 +6,7 @@
   };
 
   outputs =
-    { nixpkgs, self, ... }:
+    { nixpkgs, ... }:
     let
       supportedSystems = nixpkgs.lib.systems.flakeExposed;
 
@@ -125,7 +125,6 @@
       );
 
       overlays.default = final: prev: { mlpreview = mkOcamlBuild prev; };
-      overlay = self.overlays.default;
 
     };
 }
