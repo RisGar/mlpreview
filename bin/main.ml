@@ -4,7 +4,7 @@ let handle_filetype ~filename ~width ~height = function
   (* empty files *)
   | "inode/x-empty" -> print_endline "Empty file"
   (* directories *)
-  | "inode/directory" -> Directory.directory ()
+  | "inode/directory" -> Directory.directory filename
   (* archives *)
   | "application/x-tar" | "application/zip" | "application/x-zip-compressed"
   | "application/x-bzip" | "application/x-bzip2" | "application/gzip"
@@ -22,14 +22,14 @@ let handle_filetype ~filename ~width ~height = function
       Image.image filename ~width ~height
   (* videos *)
   | str when String.starts_with ~prefix:"video" str ->
-      FFmpeg.thumbnail filename ~width ~height
+      Ffmpeg.thumbnail filename ~width ~height
   (* everything else, print mime to find new possible filetypes to handle *)
   | mime ->
       print_endline mime;
       Text.text filename
 
 let mlpreview ~width ~height ~horizontal ~vertical = function
-  | None -> `Ok (Directory.directory ())
+  | None -> `Ok (Directory.directory ".")
   | Some filename ->
       ignore horizontal;
       ignore vertical;
