@@ -1,6 +1,6 @@
 # mlpreview
 
-- Previews files and directories in the terminal on macOS.
+- Previews files and directories in the terminal on Unix-likes.
 
 - Can be used as a preview tool for [lf file manager](https://github.com/gokcehan/lf).
 
@@ -23,11 +23,11 @@
 
 ## Requirements
 
-- Terminal emulator that supports the [kitty terminal graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
+- If you want images: Terminal emulator that supports the [kitty terminal graphics protocol](https://sw.kovidgoyal.net/kitty/graphics-protocol/)
 
 ## Installation
 
-### Nix flake
+### Nix
 
 Try it out:
 
