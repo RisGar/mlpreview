@@ -1,3 +1,5 @@
+[![.github/workflows/main.yml](https://github.com/RisGar/mlpreview/actions/workflows/main.yml/badge.svg)](https://github.com/RisGar/mlpreview/actions/workflows/main.yml)
+
 # mlpreview
 
 - Previews files and directories in the terminal on Unix-likes.
